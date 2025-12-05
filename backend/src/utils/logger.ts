@@ -78,3 +78,4 @@ export const logSync = (tenantId: string, syncType: string, status: string, deta
 export default logger;
 
 
+
