@@ -99,3 +99,4 @@ export const getTenantPrisma = (tenantId: string) => {
 
 export default prisma;
 
+

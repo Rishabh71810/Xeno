@@ -111,3 +111,4 @@ export const getProductTypes = asyncHandler(async (req: Request, res: Response) 
   return sendSuccess(res, types);
 });
 
+
