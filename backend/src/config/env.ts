@@ -15,8 +15,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DIRECT_URL: z.string().optional(),
 
-  // Redis
-  REDIS_URL: z.string().default('redis://localhost:6379'),
+  // Redis (REQUIRED - get free Redis from https://upstash.com)
+  REDIS_URL: z.string().min(1, 'REDIS_URL is required. Get free Redis at https://upstash.com'),
 
   // JWT
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),

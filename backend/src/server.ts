@@ -54,26 +54,21 @@ const startServer = async (): Promise<void> => {
     // Connect to database
     await connectDatabase();
 
-    // Initialize Redis (optional - will work without it)
-    try {
-      const redis = getRedisClient();
-      const isRedisHealthy = await checkRedisHealth();
-      if (isRedisHealthy) {
-        logger.info('✅ Redis connected and healthy');
-        
-        // Initialize background workers
-        await initializeWorkers();
-        logger.info('✅ Background workers initialized');
-        
-        // Start scheduler
-        startScheduler();
-        logger.info('✅ Scheduler started');
-      } else {
-        logger.warn('⚠️ Redis not available - running without background jobs');
-      }
-    } catch (redisError) {
-      logger.warn('⚠️ Redis connection failed - running without background jobs', redisError);
+    // Initialize Redis (REQUIRED for background jobs)
+    const redis = getRedisClient();
+    const isRedisHealthy = await checkRedisHealth();
+    if (!isRedisHealthy) {
+      throw new Error('❌ Redis connection failed - Redis is required for this application');
     }
+    logger.info('✅ Redis connected and healthy');
+    
+    // Initialize background workers
+    await initializeWorkers();
+    logger.info('✅ Background workers initialized');
+    
+    // Start scheduler
+    startScheduler();
+    logger.info('✅ Scheduler started');
 
     // Start HTTP server
     server = app.listen(env.PORT, () => {
