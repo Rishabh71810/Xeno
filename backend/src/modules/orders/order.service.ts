@@ -59,9 +59,12 @@ export const getOrders = async (
   }
 
   if (filters.endDate) {
+    // Set end date to end of day (23:59:59.999) to include full day
+    const endOfDay = new Date(filters.endDate);
+    endOfDay.setUTCHours(23, 59, 59, 999);
     where.shopifyCreatedAt = {
       ...where.shopifyCreatedAt as Prisma.DateTimeFilter,
-      lte: new Date(filters.endDate),
+      lte: endOfDay,
     };
   }
 
@@ -221,9 +224,12 @@ export const getOrderStats = async (
   }
 
   if (endDate) {
+    // Set end date to end of day (23:59:59.999) to include full day
+    const endOfDay = new Date(endDate);
+    endOfDay.setUTCHours(23, 59, 59, 999);
     where.shopifyCreatedAt = {
       ...where.shopifyCreatedAt as Prisma.DateTimeFilter,
-      lte: new Date(endDate),
+      lte: endOfDay,
     };
   }
 
