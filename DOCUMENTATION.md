@@ -2,7 +2,7 @@
 ## Technical Documentation
 
 **Author:** Rishabh Sharma  
-**Date:** December 2024  
+**Date:** 6th December 2025  
 **Version:** 1.0
 
 ---
