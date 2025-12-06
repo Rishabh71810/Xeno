@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   BarChart, 
   Bar, 
@@ -18,23 +19,37 @@ import {
   Users, 
   ShoppingBag, 
   CreditCard, 
-  TrendingUp 
+  TrendingUp,
+  Crown
 } from "lucide-react";
+
+interface TopCustomer {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  totalSpent: number;
+  totalOrders: number;
+  averageOrderValue: number;
+}
 
 export default function DashboardPage() {
   const [overview, setOverview] = useState<any>(null);
   const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [overviewRes, revenueRes] = await Promise.all([
+        const [overviewRes, revenueRes, topCustomersRes] = await Promise.all([
           api.get("/insights/overview"),
-          api.get("/insights/revenue?groupBy=day")
+          api.get("/insights/revenue?groupBy=day"),
+          api.get("/insights/top-customers?limit=5")
         ]);
         setOverview(overviewRes.data.data);
         setRevenueData(revenueRes.data.data);
+        setTopCustomers(topCustomersRes.data.data || []);
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
       } finally {
@@ -167,6 +182,54 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Top 5 Customers */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Crown className="h-5 w-5 text-yellow-500" />
+            <CardTitle>Top 5 Customers by Spend</CardTitle>
+          </div>
+          <CardDescription>Your highest value customers based on total spending</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {topCustomers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No customer data available yet</p>
+          ) : (
+            <div className="space-y-4">
+              {topCustomers.map((customer, index) => (
+                <div key={customer.id} className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-bold">
+                    {index + 1}
+                  </div>
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {customer.firstName?.[0] || customer.email?.[0]?.toUpperCase() || "?"}
+                      {customer.lastName?.[0] || ""}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {customer.firstName || customer.lastName 
+                        ? `${customer.firstName || ""} ${customer.lastName || ""}`.trim()
+                        : customer.email || "Unknown Customer"}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {customer.email || "No email"} • {customer.totalOrders} orders
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold">₹{customer.totalSpent.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Avg: ₹{Math.round(customer.averageOrderValue).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

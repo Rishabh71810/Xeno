@@ -3,9 +3,6 @@ import { Queue, Worker, QueueEvents, Processor, WorkerOptions } from 'bullmq';
 import { env } from './env.js';
 import { logger } from '../utils/logger.js';
 
-// Check if TLS is required (Upstash uses rediss://)
-const isTLS = env.REDIS_URL.startsWith('rediss://');
-
 // Redis Client Singleton
 let redisClient: Redis | null = null;
 
@@ -14,7 +11,6 @@ export const getRedisClient = (): Redis => {
     redisClient = new Redis(env.REDIS_URL, {
       maxRetriesPerRequest: null, // Required for BullMQ
       enableReadyCheck: false,
-      tls: isTLS ? {} : undefined, // Enable TLS for Upstash (rediss://)
       retryStrategy: (times) => {
         if (times > 3) {
           logger.error('Redis connection failed after 3 retries');
@@ -41,18 +37,13 @@ export const getRedisClient = (): Redis => {
 };
 
 // BullMQ connection config
-export const getRedisConnection = () => {
-  const url = new URL(env.REDIS_URL);
-  return {
-    connection: {
-      host: url.hostname || 'localhost',
-      port: parseInt(url.port) || 6379,
-      password: url.password || undefined,
-      tls: isTLS ? {} : undefined, // Enable TLS for Upstash
-      maxRetriesPerRequest: null, // Required for BullMQ workers
-    },
-  };
-};
+export const getRedisConnection = () => ({
+  connection: {
+    host: new URL(env.REDIS_URL).hostname || 'localhost',
+    port: parseInt(new URL(env.REDIS_URL).port) || 6379,
+    password: new URL(env.REDIS_URL).password || undefined,
+  },
+});
 
 // Queue Names
 export const QUEUE_NAMES = {
@@ -140,4 +131,3 @@ export const checkRedisHealth = async (): Promise<boolean> => {
 };
 
 export default getRedisClient;
-
